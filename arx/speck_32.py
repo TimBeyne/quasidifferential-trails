@@ -60,18 +60,18 @@ diffs = [
 #    (0x0040, 0x0542)
 #]
 # 9 rounds (second characteristic, weight 33)
-# diffs = [
-#     (0x8054, 0xA900),
-#     (0x0000, 0xA402),
-#     (0xE402, 0x7408),
-#     (0x5040, 0x8061),
-#     (0x0381, 0x0207),
-#     (0x001C, 0x0800),
-#     (0x2000, 0x0000),
-#     (0x0040, 0x0040),
-#     (0x8040, 0x8140),
-#     (0x0040, 0x0542)  
-# ]
+#diffs = [
+#    (0x8054, 0xA900),
+#    (0x0000, 0xA402),
+#    (0xE402, 0x7408),
+#    (0x5040, 0x8061),
+#    (0x0381, 0x0207),
+#    (0x001C, 0x0800),
+#    (0x2000, 0x0000),
+#    (0x0040, 0x0040),
+#    (0x8040, 0x8140),
+#    (0x0040, 0x0542)  
+#]
 # 9 rounds (third characteristic, weight 33)
 #diffs = [
 #    (0x8054, 0xA900),
@@ -87,7 +87,7 @@ diffs = [
 #]
 
 word_size = 16
-max_weight_loss = 6
+max_weight_loss = 5
 
 sols = []
 btor, weight = common.speck_quasidifferential_trails(diffs, word_size)

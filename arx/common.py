@@ -107,25 +107,19 @@ def modular_addition(btor, a, b, c, u, v, w, nb_bits, i):
     w_ = M_transpose(btor, u ^ v ^ w, nb_bits)
 
     n = nb_bits - 1
-    wn = (u ^ v ^ w)[n]
-
-    btor.Assert(
-        ((a_[n] & v_[n]) == (u_[n] & ~a_[n])) |\
-        ~(a_[n] | b_[n]) |\
-        ((a_[n] & b_[n]) ^ (b_[n] & v_[n]) != wn)
-    )
 
     btor.Assert((u_ | v_) & ~(a_ | b_ | w_) == 0)
     btor.Assert((a_ & u_) ^ (b_ & v_) == (c_ & w_))
+    #btor.Assert(~(a_[n] | b_[n]) | (a_[n] & u_[n] == u_[n] ^ v_[n]))
+    btor.Assert(((a_[n] == 0) & (b_[n] == 0)) | (a_[n] & u_[n] == u_[n] ^ v_[n]))
 
+    weight = hamming_weight(btor, w_ & ~a_ & ~b_, nb_bits) 
     extra = btor.Cond(
-        ((a_[n] & v_[n]) != (u_[n] & ~a_[n])) &\
-        (a_[n] | b_[n]) &\
-        ((a_[n] & u_[n]) ^ (b_[n] & v_[n]) == wn),
+        (a_[n] | b_[n]) & ((u_[n] ^ v_[n]) == (a_[n] & u_[n])) & (u_[n] != v_[n]),
         btor.Const(1, nb_bits),
         btor.Const(0, nb_bits)
     )
-    return hamming_weight(btor, w_ & ~a_ & ~b_, nb_bits) - extra
+    return weight - extra
 
 def speck_quasidifferential_trails(diffs, nb_bits):
     btor = Boolector()
@@ -257,8 +251,11 @@ def compute_sign_speck(differences, masks, word_size):
     """ Compute the sign of a quasidifferential trail for Speck. """
 
     def pseudoinverseM(t):
-        t = t ^ (t << 1)
+        t = t ^ ((t << 1) % 2 ** word_size)
         return t >> 1
+
+    def complement(t):
+        return (2 ** word_size - 1) ^ t
 
     s = 1
     for i in range(len(masks) - 1):
@@ -269,7 +266,7 @@ def compute_sign_speck(differences, masks, word_size):
             u = rotl(masks[i][0], word_size - 8, word_size)
             v = rotl(masks[i + 1][1], word_size - 3, word_size) ^ masks[i][1]
         w = masks[i + 1][0] ^ masks[i + 1][1]
-        (u_, v_, w_) = (v ^ w, u ^ w, u ^ v ^ w)
+        (u_, v_, _) = (v ^ w, u ^ w, u ^ v ^ w)
 
         (l , b) = differences[i]
         c       = differences[i + 1][0]
@@ -278,7 +275,7 @@ def compute_sign_speck(differences, masks, word_size):
         else:
             a = rotl(l, 8, word_size) 
         (a_, b_, c_) = (b ^ c, a ^ c, pseudoinverseM(a ^ b ^ c))
-        p1 = parity(((((2 ** word_size - 1) ^ a_) & c_) ^ (a_ & b_)) & u_)
-        p2 = parity(a_ & c_ & v_)
+        p1 = parity(((complement(a_) & u_) ^ (c_ & v_)) & ((complement(b_) & v_) ^ (c_ & u_)))
+        p2 = parity((u_ & v_) & (c_ ^ (a_ & b_ & complement(c_))))
         s *= (-1) ** (p1 ^ p2)
     return s
