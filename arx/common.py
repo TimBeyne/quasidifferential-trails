@@ -110,7 +110,6 @@ def modular_addition(btor, a, b, c, u, v, w, nb_bits, i):
 
     btor.Assert((u_ | v_) & ~(a_ | b_ | w_) == 0)
     btor.Assert((a_ & u_) ^ (b_ & v_) == (c_ & w_))
-    #btor.Assert(~(a_[n] | b_[n]) | (a_[n] & u_[n] == u_[n] ^ v_[n]))
     btor.Assert(((a_[n] == 0) & (b_[n] == 0)) | (a_[n] & u_[n] == u_[n] ^ v_[n]))
 
     weight = hamming_weight(btor, w_ & ~a_ & ~b_, nb_bits) 
@@ -266,16 +265,17 @@ def compute_sign_speck(differences, masks, word_size):
             u = rotl(masks[i][0], word_size - 8, word_size)
             v = rotl(masks[i + 1][1], word_size - 3, word_size) ^ masks[i][1]
         w = masks[i + 1][0] ^ masks[i + 1][1]
-        (u_, v_, _) = (v ^ w, u ^ w, u ^ v ^ w)
+        (u_, v_, _) = (u ^ w, v ^ w, u ^ v ^ w)
 
         (l , b) = differences[i]
         c       = differences[i + 1][0]
         if word_size == 16:
-            a = rotl(l, 7, word_size) 
+            a = rotl(l, word_size - 7, word_size) 
         else:
-            a = rotl(l, 8, word_size) 
+            a = rotl(l, word_size - 8, word_size) 
         (a_, b_, c_) = (b ^ c, a ^ c, pseudoinverseM(a ^ b ^ c))
         p1 = parity(((complement(a_) & u_) ^ (c_ & v_)) & ((complement(b_) & v_) ^ (c_ & u_)))
         p2 = parity((u_ & v_) & (c_ ^ (a_ & b_ & complement(c_))))
         s *= (-1) ** (p1 ^ p2)
+
     return s

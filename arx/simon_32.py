@@ -9,15 +9,6 @@ def correlation_sign_and(a, b, c, u, v, w):
     p = parity(((complement(a) & u) ^ (c & v)) & ((complement(b) & v) ^ (c & u))) +\
         parity((u & v) & (c ^ (a & b & complement(c))))
     return (-1) ** p
-    #x0 = (a & b) ^ (b & c)
-    #y0 = a & c & (0xffff ^ b)
-    #u_ = u ^ (w & y0)
-    #v_ = v ^ (w & x0)
-    #temp = (0xffff ^ a) & (0xffff ^ b)
-    #t = (u_ & temp) & (v_ & temp)
-
-    #p = parity(u & x0) + parity(v & y0) + parity(t) + parity(w & c)
-    #return (-1) ** p
 
 def correlation_sign(masks, differences):
     s = 1
